@@ -101,7 +101,7 @@ export default function Notifications({
               <div
                 key={notif.id}
                 className={`border border-zinc-900 rounded-2xl p-4 flex gap-4 backdrop-blur-md relative transition-all ${
-                  isUnread ? "bg-zinc-90 w-full" : "bg-zinc-950/65"
+                  isUnread ? "bg-zinc-900" : "bg-zinc-950/65"
                 }`}
               >
                 {/* Active alert indicator bullet point */}

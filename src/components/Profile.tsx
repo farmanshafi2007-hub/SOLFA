@@ -268,7 +268,7 @@ export default function Profile({
     <div id="profile-root" className="flex-1 max-w-2xl text-left">
       
       {/* Banner Area */}
-      <div className="relative h-44 bg-zinc-950 border-b border-zinc-90 w-full overflow-hidden">
+      <div className="relative h-44 bg-zinc-950 border-b border-zinc-900 w-full overflow-hidden">
         {profile.bannerURL ? (
           <img
             src={profile.bannerURL}

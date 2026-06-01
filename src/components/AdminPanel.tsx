@@ -237,7 +237,7 @@ export default function AdminPanel({ currentUserProfile }: AdminPanelProps) {
                 <img
                   src={usr.photoURL}
                   alt={usr.displayName}
-                  className="w-9 h-9 rounded-full object-cover bg-zinc-90"
+                  className="w-9 h-9 rounded-full object-cover bg-zinc-900"
                 />
                 <div className="text-left text-xs leading-none">
                   <h4 className="font-bold text-white mb-1 flex items-center gap-1">

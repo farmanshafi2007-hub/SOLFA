@@ -539,7 +539,7 @@ export default function PostCard({
                 onChange={(e) => setNewComment(e.target.value)}
                 placeholder="Compose response dialog text..."
                 maxLength={250}
-                className="flex-1 bg-zinc-905 border border-zinc-850 rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-zinc-700 transition-all font-serif"
+                className="flex-1 bg-zinc-900 border border-zinc-800 rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-zinc-700 transition-all font-serif"
                 required
               />
               <button
@@ -574,7 +574,7 @@ export default function PostCard({
               value={reportReason}
               onChange={(e) => setReportReason(e.target.value)}
               placeholder="State clear reasons or violating tags of the post..."
-              className="w-full h-24 bg-zinc-900 border border-zinc-800 rounded-xl p-3 text-xs text-white placeholder-zinc-550 focus:outline-none focus:border-zinc-705 mb-4 font-serif"
+              className="w-full h-24 bg-zinc-900 border border-zinc-800 rounded-xl p-3 text-xs text-white placeholder-zinc-550 focus:outline-none focus:border-zinc-700 mb-4 font-serif"
               maxLength={500}
               required
             />

@@ -124,7 +124,7 @@ export default function Search({
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           placeholder="Explore user handles, hashtags (#DevWeek), or general terms..."
-          className="w-full pl-11 pr-4 py-3 bg-zinc-950 border border-zinc-90 w-full rounded-2xl text-sm text-white placeholder-zinc-650 focus:outline-none focus:border-zinc-70 transition-all font-serif shadow-inner"
+          className="w-full pl-11 pr-4 py-3 bg-zinc-950 border border-zinc-900 rounded-2xl text-sm text-white placeholder-zinc-650 focus:outline-none focus:border-zinc-700 transition-all font-serif shadow-inner"
         />
       </div>
 

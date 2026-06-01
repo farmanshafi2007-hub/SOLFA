@@ -286,7 +286,7 @@ export default function Messages({
     <div id="messages-root" className="flex-1 max-w-2xl text-left flex flex-col md:flex-row h-screen border-r border-zinc-900 bg-black text-white pointer-events-auto">
       
       {/* ROOMS CORRESPONDENCE PANEL */}
-      <div className="w-full md:w-72 border-r border-zinc-90 w-full flex flex-col shrink-0 h-1/2 md:h-full">
+      <div className="w-full md:w-72 border-r border-zinc-900 flex flex-col shrink-0 h-1/2 md:h-full">
         <header className="p-4 border-b border-zinc-900 flex justify-between items-center bg-zinc-950">
           <h2 className="text-sm font-semibold text-white uppercase tracking-wider flex items-center gap-1.5 leading-none">
             <Mail className="w-4 h-4 text-white" /> Channels list
@@ -462,7 +462,7 @@ export default function Messages({
                 }}
                 placeholder="Compose secure DM update..."
                 maxLength={1000}
-                className="flex-1 bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-2.5 text-xs text-zinc-205 placeholder-zinc-600 focus:outline-none focus:border-zinc-705 font-serif"
+                className="flex-1 bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-2.5 text-xs text-zinc-200 placeholder-zinc-600 focus:outline-none focus:border-zinc-700 font-serif"
                 required
               />
               <button

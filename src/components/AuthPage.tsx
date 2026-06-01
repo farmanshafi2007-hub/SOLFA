@@ -202,7 +202,7 @@ export default function AuthPage({ onAuthSuccess }: AuthPageProps) {
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-3.5 py-2.5 bg-zinc-900 border border-zinc-800 rounded-xl text-sm text-white placeholder-zinc-600 focus:outline-none focus:border-zinc-700 focus:ring-1 focus:ring-zinc-705 transition-all"
+              className="w-full px-3.5 py-2.5 bg-zinc-900 border border-zinc-800 rounded-xl text-sm text-white placeholder-zinc-600 focus:outline-none focus:border-zinc-700 focus:ring-1 focus:ring-zinc-700 transition-all"
               placeholder="name@domain.com"
               required
             />
@@ -298,7 +298,7 @@ export default function AuthPage({ onAuthSuccess }: AuthPageProps) {
         <button
           onClick={signInWithGoogle}
           disabled={loading}
-          className="w-full py-2.5 bg-zinc-900 border border-zinc-805 text-zinc-300 rounded-xl text-sm font-medium hover:bg-zinc-850 active:scale-[0.98] transition-all flex items-center justify-center gap-2 cursor-pointer"
+          className="w-full py-2.5 bg-zinc-900 border border-zinc-800 text-zinc-300 rounded-xl text-sm font-medium hover:bg-zinc-850 active:scale-[0.98] transition-all flex items-center justify-center gap-2 cursor-pointer"
         >
           {loading ? (
             <RefreshCw className="w-4 h-4 animate-spin" />

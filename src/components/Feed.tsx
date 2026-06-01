@@ -174,7 +174,7 @@ export default function Feed({
               <img
                 src={currentUserProfile.photoURL}
                 alt={currentUserProfile.displayName}
-                className="w-10 h-10 rounded-full bg-zinc-90 w-10 object-cover shrink-0"
+                className="w-10 h-10 rounded-full bg-zinc-900 object-cover shrink-0"
               />
               <div className="flex-1">
                 <textarea
@@ -221,7 +221,7 @@ export default function Feed({
 
       {/* TRENDING BAR QUICK BANNER */}
       {apiTrends.length > 0 && activeSubTab === "TRENDING" && (
-        <section className="bg-zinc-950/40 border border-zinc-900/60 rounded-2xl p-4 mb-6 hover:border-zinc-805 transition-all text-left">
+        <section className="bg-zinc-950/40 border border-zinc-900/60 rounded-2xl p-4 mb-6 hover:border-zinc-800 transition-all text-left">
           <span className="text-[10px] font-mono uppercase text-zinc-500 tracking-wider flex items-center gap-1.5 mb-3">
             <TrendingUp className="w-3.5 h-3.5 text-zinc-500" /> Dynamic trending tags
           </span>

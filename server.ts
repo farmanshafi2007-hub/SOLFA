@@ -50,22 +50,33 @@ async function generateContentWithFallback(contents: string, config?: any) {
         return response;
       } catch (err: any) {
         lastError = err;
-        console.warn(`[Gemini SDK] Model ${model} failed: ${err.message || err}`);
+        const errMessage = err?.message || String(err);
+        const errCode = err?.status || err?.code || 0;
+        console.warn(`[Gemini SDK] Model ${model} failed with code/status ${errCode}: ${errMessage}`);
         
-        // Retry only if it's a transient issue (e.g., 503, 429, unavailability, or rate limit)
+        // 429 represents a Rate Limit or Quota Exceeded error.
+        // Retrying on a 429 on the SAME model immediately is highly unlikely to succeed and increases latency.
+        // Instead, skip remaining retries for this model and proceed to the next fallback model immediately.
+        const isQuotaOrRateLimit = 
+          errCode === 429 || 
+          errMessage.includes("429") || 
+          errMessage.includes("RESOURCE_EXHAUSTED") ||
+          errMessage.includes("Quota exceeded") ||
+          errMessage.includes("quota") ||
+          errMessage.includes("rate limit");
+
+        if (isQuotaOrRateLimit) {
+          console.warn(`[Gemini SDK] Model ${model} returned quota/rate limit error. Skipping retries and trying adjacent model fallback.`);
+          break; // Break the 'attempts' loop to proceed directly to the next model in 'modelsToTry'
+        }
+
+        // Retry only if it's a transient issue (e.g., 503, unavailability, or high demand)
         const isTransient = 
-          err.status === 503 || 
-          err.code === 503 ||
-          err.status === 429 ||
-          err.code === 429 ||
-          (err.message && (
-            err.message.includes("503") || 
-            err.message.includes("UNAVAILABLE") || 
-            err.message.includes("429") || 
-            err.message.includes("RATE_LIMIT") ||
-            err.message.includes("high demand") ||
-            err.message.includes("temporary")
-          ));
+          errCode === 503 ||
+          errMessage.includes("503") || 
+          errMessage.includes("UNAVAILABLE") || 
+          errMessage.includes("high demand") ||
+          errMessage.includes("temporary");
 
         if (isTransient) {
           attempts--;
