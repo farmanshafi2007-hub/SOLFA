@@ -1,0 +1,199 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "Public profile details of a user",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "description": "The unique user ID matching their Auth UID" },
+        "username": { "type": "string", "description": "Unique username used for mentions and search" },
+        "displayName": { "type": "string", "description": "User display name" },
+        "bio": { "type": "string", "description": "Biography description of user" },
+        "photoURL": { "type": "string", "description": "Profile picture URL" },
+        "bannerURL": { "type": "string", "description": "Banner cover image URL" },
+        "createdAt": { "type": "string", "description": "User join timestamp" },
+        "followersCount": { "type": "integer", "description": "Number of followers" },
+        "followingCount": { "type": "integer", "description": "Number of followed users" },
+        "postsCount": { "type": "integer", "description": "Number of published posts" },
+        "isVerified": { "type": "boolean", "description": "Boolean flag for verification badge" },
+        "isSuspended": { "type": "boolean", "description": "Admin suspended state" }
+      },
+      "required": ["uid", "username", "displayName", "createdAt", "followersCount", "followingCount", "postsCount", "isVerified"]
+    },
+    "PrivateUserInfo": {
+      "title": "PrivateUserInfo",
+      "description": "Sensitive user details and PII isolated for security",
+      "type": "object",
+      "properties": {
+        "email": { "type": "string", "description": "The primary verified email address" },
+        "emailVerified": { "type": "boolean", "description": "True if email address has been verified" },
+        "updatedAt": { "type": "string", "description": "Timestamp of last edit" }
+      },
+      "required": ["email"]
+    },
+    "Post": {
+      "title": "Post",
+      "description": "A short text update posted by a user",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Unique post ID" },
+        "authorId": { "type": "string", "description": "UID of the author user" },
+        "authorUsername": { "type": "string", "description": "Username of the author at code runtime" },
+        "authorDisplayName": { "type": "string", "description": "Display name of the author at code runtime" },
+        "authorPhotoURL": { "type": "string", "description": "Photo URL of the author at code runtime" },
+        "content": { "type": "string", "description": "Text update, limited to 500 characters" },
+        "createdAt": { "type": "string", "description": "Publish timestamp" },
+        "likesCount": { "type": "integer", "description": "Number of likes" },
+        "commentsCount": { "type": "integer", "description": "Number of comments" },
+        "repostsCount": { "type": "integer", "description": "Number of reposts" },
+        "isRepost": { "type": "boolean", "description": "Is this post a repost of another" },
+        "repostedPostId": { "type": "string", "description": "Post ID of the original post, if this is a repost" },
+        "repostedAuthorName": { "type": "string", "description": "Original author name, if this is a repost" }
+      },
+      "required": ["id", "authorId", "authorUsername", "authorDisplayName", "content", "createdAt", "likesCount", "commentsCount", "repostsCount"]
+    },
+    "Comment": {
+      "title": "Comment",
+      "description": "A reply text commented on a post",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Unique comment ID" },
+        "postId": { "type": "string", "description": "The associated post ID" },
+        "authorId": { "type": "string", "description": "UID of the comment author" },
+        "authorUsername": { "type": "string", "description": "Username of the comment author" },
+        "authorDisplayName": { "type": "string", "description": "Display name of the comment author" },
+        "authorPhotoURL": { "type": "string", "description": "Photo URL of the comment author" },
+        "content": { "type": "string", "description": "Comment text" },
+        "createdAt": { "type": "string", "description": "Publish timestamp" }
+      },
+      "required": ["id", "postId", "authorId", "authorUsername", "authorDisplayName", "content", "createdAt"]
+    },
+    "Like": {
+      "title": "Like",
+      "description": "Like interaction on a post",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "The composite ID format: userId_postId" },
+        "userId": { "type": "string", "description": "UID of the liking user" },
+        "postId": { "type": "string", "description": "The post ID liked" },
+        "createdAt": { "type": "string", "description": "Timestamp of the like event" }
+      },
+      "required": ["id", "userId", "postId", "createdAt"]
+    },
+    "Follower": {
+      "title": "Follower",
+      "description": "Follow relationship representation",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Format: followerId_followingId" },
+        "followerId": { "type": "string", "description": "UID of the user doing the following action" },
+        "followingId": { "type": "string", "description": "UID of the user being followed" },
+        "createdAt": { "type": "string", "description": "Timestamp of follow" }
+      },
+      "required": ["id", "followerId", "followingId", "createdAt"]
+    },
+    "Notification": {
+      "title": "Notification",
+      "description": "Real-time user feedback notification",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Unique notification ID" },
+        "recipientId": { "type": "string", "description": "UID of user receiving notification" },
+        "senderId": { "type": "string", "description": "UID of user triggering event" },
+        "senderUsername": { "type": "string", "description": "Sender username" },
+        "senderPhotoURL": { "type": "string", "description": "Sender avatar photo" },
+        "type": { "type": "string", "description": "One of: FOLLOW, LIKE, COMMENT, REPOST, MENTION, MSG" },
+        "targetId": { "type": "string", "description": "Associated post ID, comment ID, message room ID, etc." },
+        "contentSnippet": { "type": "string", "description": "Trimming of the active context" },
+        "isRead": { "type": "boolean", "description": "Seen state indicator" },
+        "createdAt": { "type": "string", "description": "Timestamp event" }
+      },
+      "required": ["id", "recipientId", "senderId", "senderUsername", "type", "targetId", "isRead", "createdAt"]
+    },
+    "Room": {
+      "title": "Room",
+      "description": "A conversation dialog chamber between two users",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Unique chamber ID" },
+        "participantIds": { "type": "array", "description": "Uids of both participants" },
+        "lastMessage": { "type": "string", "description": "Snippet text of most recent message" },
+        "lastSenderId": { "type": "string", "description": "UID of most recent sender" },
+        "updatedAt": { "type": "string", "description": "Last updated timestamp" },
+        "typingStatus": { "type": "object", "description": "Typing states indexed by userId" }
+      },
+      "required": ["id", "participantIds", "updatedAt"]
+    },
+    "Message": {
+      "title": "Message",
+      "description": "An individual chat message within a room",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Unique message ID" },
+        "roomId": { "type": "string", "description": "The associated conversation chamber ID" },
+        "senderId": { "type": "string", "description": "UID of sender user" },
+        "content": { "type": "string", "description": "Message body text" },
+        "createdAt": { "type": "string", "description": "Timestamp record" },
+        "isRead": { "type": "boolean", "description": "True if the sibling participant read it" }
+      },
+      "required": ["id", "roomId", "senderId", "content", "createdAt", "isRead"]
+    },
+    "Report": {
+      "title": "Report",
+      "description": "User reported abusive or violating content",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Unique report ID" },
+        "reporterId": { "type": "string", "description": "UID of user lodging report" },
+        "targetType": { "type": "string", "description": "'POST' or 'USER'" },
+        "targetId": { "type": "string", "description": "Reported Post ID or User ID" },
+        "reason": { "type": "string", "description": "User described violation rationale" },
+        "status": { "type": "string", "description": "'PENDING', 'RESOLVED_BANNED', 'RESOLVED_DISMISSED'" },
+        "createdAt": { "type": "string", "description": "Lodged timestamp" }
+      },
+      "required": ["id", "reporterId", "targetType", "targetId", "reason", "status", "createdAt"]
+    }
+  },
+  "firestore": {
+    "users/{userId}": {
+      "schema": "User",
+      "description": "Accessible public profiles"
+    },
+    "users/{userId}/private/info": {
+      "schema": "PrivateUserInfo",
+      "description": "PII credentials profile node"
+    },
+    "posts/{postId}": {
+      "schema": "Post",
+      "description": "Global short posts feed"
+    },
+    "comments/{commentId}": {
+      "schema": "Comment",
+      "description": "Comments attached to posts"
+    },
+    "likes/{likeId}": {
+      "schema": "Like",
+      "description": "Like mapping list records"
+    },
+    "followers/{followId}": {
+      "schema": "Follower",
+      "description": "Following graph relations node"
+    },
+    "notifications/{notificationId}": {
+      "schema": "Notification",
+      "description": "Activity stream alerts"
+    },
+    "rooms/{roomId}": {
+      "schema": "Room",
+      "description": "Active direct messaging dialogue rooms"
+    },
+    "rooms/{roomId}/messages/{messageId}": {
+      "schema": "Message",
+      "description": "Room explicit conversation records"
+    },
+    "reports/{reportId}": {
+      "schema": "Report",
+      "description": "Submitted abuse reports"
+    }
+  }
+}

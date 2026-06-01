@@ -1,0 +1,265 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // 1. Global Safety Net Catch-All
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // 2. Global Safety Helpers
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    // Checking if user is verified admin. Supports bootstrapped user email or admin doc exists
+    function isAdmin() {
+      return isSignedIn() && (
+        request.auth.token.email == "farmanshafi2007@gmail.com" ||
+        exists(/databases/$(database)/documents/admins/$(request.auth.uid))
+      );
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    // 3. Entity Specific Validations
+    function isValidUser(data) {
+      return data.uid == request.auth.uid
+        && data.username is string && data.username.size() >= 3 && data.username.size() <= 30
+        && data.displayName is string && data.displayName.size() >= 1 && data.displayName.size() <= 50
+        && (data.bio == null || data.bio is string)
+        && data.followersCount is int
+        && data.followingCount is int
+        && data.postsCount is int
+        && data.isVerified is bool;
+    }
+
+    function isValidPost(data) {
+      return data.authorId == request.auth.uid
+        && data.content is string && data.content.size() <= 500
+        && data.likesCount is int
+        && data.commentsCount is int
+        && data.repostsCount is int
+        && data.isRepost is bool;
+    }
+
+    function isValidComment(data) {
+      return data.authorId == request.auth.uid
+        && data.postId is string
+        && data.content is string && data.content.size() <= 500;
+    }
+
+    function isValidLike(data) {
+      return data.userId == request.auth.uid
+        && data.postId is string;
+    }
+
+    function isValidFollower(data) {
+      return data.followerId == request.auth.uid
+        && data.followingId is string
+        && data.followerId != data.followingId;
+    }
+
+    function isValidNotification(data) {
+      return data.recipientId is string
+        && data.senderId == request.auth.uid
+        && data.type is string
+        && data.isRead == false;
+    }
+
+    function isValidRoom(data) {
+      return data.participantIds is list
+        && data.participantIds.size() == 2
+        && request.auth.uid in data.participantIds;
+    }
+
+    function isValidMessage(data) {
+      return data.senderId == request.auth.uid
+        && data.content is string && data.content.size() <= 2000
+        && data.isRead == false;
+    }
+
+    function isValidReport(data) {
+      return data.reporterId == request.auth.uid
+        && data.targetType is string
+        && data.targetId is string
+        && data.reason is string && data.reason.size() <= 1000
+        && data.status == 'PENDING';
+    }
+
+
+    // 4. Collection Targets
+
+    // -> Users collection
+    match /users/{userId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn() 
+                    && isOwner(userId) 
+                    && isValidUser(incoming())
+                    && incoming().isVerified == false; // Block self-verification during signup!
+      allow update: if isSignedIn() && (
+        isAdmin() || (
+          isOwner(userId) 
+          && isValidUser(incoming())
+          && incoming().isVerified == existing().isVerified // Block self-verification during updates
+          && incoming().isSuspended == existing().isSuspended // Block self-suspension override
+        )
+      );
+      allow delete: if isAdmin();
+
+      // PII Split Subcollection for isolation
+      match /private/info {
+        allow read: if isOwner(userId) || isAdmin();
+        allow write: if isOwner(userId) || isAdmin();
+      }
+    }
+
+    // -> Admins tracking list
+    match /admins/{adminId} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
+    }
+
+    // -> Posts collection
+    match /posts/{postId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn() 
+                    && isValidId(postId)
+                    && isValidPost(incoming())
+                    && incoming().createdAt == request.time;
+      allow update: if isSignedIn() && (
+        isAdmin() || (
+          // Allowing owners to edit content, keeping metadata aligned
+          isOwner(existing().authorId)
+          && isValidPost(incoming())
+          && incoming().authorId == existing().authorId
+          && incoming().createdAt == existing().createdAt
+          && incoming().likesCount == existing().likesCount
+          && incoming().commentsCount == existing().commentsCount
+          && incoming().repostsCount == existing().repostsCount
+        ) || (
+          // Tiered Interaction update (non-owners incrementing counters synchronously)
+          isValidPost(incoming())
+          && incoming().content == existing().content
+          && incoming().authorId == existing().authorId
+          && incoming().createdAt == existing().createdAt
+          && incoming().diff(existing()).affectedKeys().hasAny(['likesCount', 'commentsCount', 'repostsCount'])
+        )
+      );
+      allow delete: if isSignedIn() && (isOwner(existing().authorId) || isAdmin());
+    }
+
+    // -> Comments collection
+    match /comments/{commentId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn() 
+                    && isValidId(commentId)
+                    && isValidComment(incoming())
+                    && incoming().createdAt == request.time;
+      allow update: if isSignedIn() && (
+        isAdmin() || (
+          isOwner(existing().authorId)
+          && isValidComment(incoming())
+          && incoming().postId == existing().postId
+          && incoming().authorId == existing().authorId
+          && incoming().createdAt == existing().createdAt
+        )
+      );
+      allow delete: if isSignedIn() && (isOwner(existing().authorId) || isAdmin());
+    }
+
+    // -> Likes collection
+    match /likes/{likeId} {
+      allow read: if isSignedIn();
+      // Ensure physical ID matches actual logical mapping: userId_postId
+      allow create: if isSignedIn()
+                    && isValidId(likeId)
+                    && likeId == request.auth.uid + "_" + incoming().postId
+                    && isValidLike(incoming())
+                    && incoming().createdAt == request.time;
+      allow delete: if isSignedIn() && (isOwner(existing().userId) || isAdmin());
+    }
+
+    // -> Followers collection
+    match /followers/{followId} {
+      allow read: if isSignedIn();
+      // Ensure physical ID matches actual logical mapping: followerId_followingId
+      allow create: if isSignedIn()
+                    && isValidId(followId)
+                    && followId == request.auth.uid + "_" + incoming().followingId
+                    && isValidFollower(incoming())
+                    && incoming().createdAt == request.time;
+      allow delete: if isSignedIn() && (isOwner(existing().followerId) || isAdmin());
+    }
+
+    // -> Notifications collection
+    match /notifications/{notificationId} {
+      allow read: if isSignedIn() && (isOwner(resource.data.recipientId) || isAdmin());
+      allow create: if isSignedIn()
+                    && isValidId(notificationId)
+                    && isValidNotification(incoming())
+                    && incoming().createdAt == request.time;
+      allow update: if isSignedIn() && (
+        isOwner(existing().recipientId)
+        && incoming().diff(existing()).affectedKeys().hasOnly(['isRead'])
+        && incoming().isRead == true
+      );
+      allow delete: if isSignedIn() && (isOwner(existing().recipientId) || isAdmin());
+    }
+
+    // -> Rooms collection (Conversations metadata)
+    match /rooms/{roomId} {
+      allow read: if isSignedIn() && (request.auth.uid in resource.data.participantIds || isAdmin());
+      allow create: if isSignedIn()
+                    && isValidId(roomId)
+                    && isValidRoom(incoming());
+      allow update: if isSignedIn() && (
+        (request.auth.uid in existing().participantIds && request.auth.uid in incoming().participantIds)
+        && (
+          incoming().diff(existing()).affectedKeys().hasAny(['lastMessage', 'lastSenderId', 'updatedAt', 'typingStatus'])
+        )
+      );
+      allow delete: if isAdmin();
+
+      // Conversation Messages Subcollection
+      match /messages/{messageId} {
+        allow read: if isSignedIn() && (request.auth.uid in get(/databases/$(database)/documents/rooms/$(roomId)).data.participantIds || isAdmin());
+        allow create: if isSignedIn()
+                      && isValidId(messageId)
+                      && request.auth.uid in get(/databases/$(database)/documents/rooms/$(roomId)).data.participantIds
+                      && isValidMessage(incoming())
+                      && incoming().createdAt == request.time;
+        allow update: if isSignedIn()
+                      && request.auth.uid in get(/databases/$(database)/documents/rooms/$(roomId)).data.participantIds
+                      && incoming().diff(existing()).affectedKeys().hasOnly(['isRead'])
+                      && incoming().isRead == true;
+        allow delete: if isAdmin() || (isOwner(existing().senderId) && request.auth.uid in get(/databases/$(database)/documents/rooms/$(roomId)).data.participantIds);
+      }
+    }
+
+    // -> Reports collection (Abuse, spam)
+    match /reports/{reportId} {
+      allow read: if isAdmin() || (isSignedIn() && isOwner(resource.data.reporterId));
+      allow create: if isSignedIn()
+                    && isValidId(reportId)
+                    && isValidReport(incoming())
+                    && incoming().createdAt == request.time;
+      allow update: if isAdmin();
+      allow delete: if isAdmin();
+    }
+  }
+}
